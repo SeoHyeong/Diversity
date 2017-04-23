@@ -11,6 +11,7 @@ output:
 ```{r include=FALSE}
 # Don't delete this chunk if you are using the DataComputing package
 library(DataComputing)
+library(rvest)
 ```
 *Source file* 
 ```{r, results='asis', echo=FALSE}
@@ -31,7 +32,7 @@ presidents <- presidentRawNode %>%
   mutate(startYear = as.numeric(as.character(startYear))) %>%
   mutate(endYear = as.numeric(as.character(endYear))) %>%
   select(Party, startYear, endYear) %>%
-  filter(startYear >= 1993)
+  filter(startYear >= 1841)
 
 trial = presidents
 for (i in seq(1993,2017)) {
