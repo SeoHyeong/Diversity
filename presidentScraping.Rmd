@@ -1,0 +1,58 @@
+---
+title: "Untitled"
+author: ""
+date: ""
+output: 
+  html_document:
+    fig_height: 3
+    fig_width: 5
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+```{r}
+# Web scrape tables for political party by year
+presidentRawNodes <- read_html("http://www.enchantedlearning.com/history/us/pres/list.shtml") %>% 
+  html_nodes(xpath = "//table") %>%
+  html_table(fill=TRUE)
+presidentRawNode <- presidentRawNodes[[9]]
+
+# Turning raw table into tidy table
+presidents <- presidentRawNode %>%
+  extractMatches("([0-9]{4})\\-([[0-9]]*)", `Term as President`, "startYear"=1, "endYear"=2) %>%
+  mutate(startYear = as.numeric(as.character(startYear))) %>%
+  mutate(endYear = as.numeric(as.character(endYear))) %>%
+  select(Party, startYear, endYear) %>%
+  filter(startYear >= 1993)
+
+trial = presidents
+for (i in seq(1993,2017)) {
+  tempDF <- trial %>%
+    filter(startYear == i)
+  if (nrow(tempDF) == 0) {
+    newRow <- trial %>%
+      filter(startYear == i-1) %>%
+      mutate(startYear = i)
+    trial <- rbind(trial, newRow)
+    trial
+  }
+}
+
+Presidents <- trial %>%
+  arrange(startYear) %>%
+  mutate(Year = startYear) %>%
+  select(Year, Party)
+Presidents
+
+#saving file as a .csv file for further use
+write.csv(Presidents, "Presidents.csv")
+```
+
