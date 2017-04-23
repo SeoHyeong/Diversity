@@ -35,7 +35,7 @@ presidents <- presidentRawNode %>%
   filter(startYear >= 1841)
 
 trial = presidents
-for (i in seq(1993,2017)) {
+for (i in seq(1841,2017)) {
   tempDF <- trial %>%
     filter(startYear == i)
   if (nrow(tempDF) == 0) {
