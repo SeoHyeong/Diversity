@@ -11,6 +11,7 @@ output:
 ```{r include=FALSE}
 # Don't delete this chunk if you are using the DataComputing package
 library(DataComputing)
+library(tidyr)
 ```
 *Source file* 
 ```{r, results='asis', echo=FALSE}
@@ -24,7 +25,6 @@ includeSourceDocuments()
 # "1-20 Political Parties of Senators and Representatives, 34th - 114th Congresses, 1855 - 2015" data from https://www.brookings.edu/multi-chapter-report/vital-statistics-on-congress/
 
 congressRaw <- read.csv("vitalstats_ch1_tbl20.csv")
-congressRaw
 
 congress <- congressRaw %>%
   mutate(Years = as.character(Years)) %>%
@@ -33,13 +33,11 @@ congress <- congressRaw %>%
   mutate(startYear = as.numeric(as.character(startYear))) %>%
   mutate(endYear = as.numeric(as.character(endYear))) %>%
   select(startYear, endYear, Chamber, PartyStatus, Seats)
-congress
 
 trial = congress
 for (i in seq(1855,2017)) {
   tempDF <- trial %>%
     filter(startYear == i)
-  print(i)
   if (nrow(tempDF) == 0) {
     newRow <- trial %>%
       filter(startYear == i-1) %>%
@@ -59,9 +57,22 @@ CongressParty <- trial %>%
   filter(Seats > 0) %>%
   filter(PartyStatus != "Other") %>%
   filter(PartyStatus != "Vacant")
+CongressParty
 
 #saving file as a .csv file for further use
 write.csv(CongressParty, "CongressParty.csv", row.names=FALSE)
 ```
 
+
+```{r}
+DominantCongressParty <- CongressParty %>%
+  spread(PartyStatus, Seats) %>%
+  mutate(DominantParty = ifelse(Democrat > Republican, "Democrat", "Republican")) %>%
+  select(Year, Chamber, DominantParty) %>%
+  spread(Chamber, DominantParty)
+DominantCongressParty
+
+#saving file as a .csv file for further use
+write.csv(DominantCongressParty, "DominantCongressParty.csv", row.names=FALSE)
+```
 
