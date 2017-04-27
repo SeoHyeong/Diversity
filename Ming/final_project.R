@@ -8,6 +8,8 @@ library(rpart.plot)
 ## install.packages("xlsx")
 library(xlsx)
 
+
+
 ## Input the data into R
 data_00_13 <- read.csv("C:\\Users\\QiMing\\Downloads\\Delta_database_87_13_CSV\\data_clean_1.csv")
 data_87_99 <- read.csv("C:\\Users\\QiMing\\Downloads\\Delta_database_87_13_CSV\\data_clean_2.csv")
@@ -84,12 +86,27 @@ data_clean <- data_clean %>%
 ## ggplot
 p1 <- data_clean %>%
   ggplot(aes(x = Academic_Year, y = Income_per_GDP, color = Party)) +
-  geom_line() 
+  geom_line(size = 1.5) +
+  labs(title = "Income per GDP from 1987 - 2013",
+       x = "Academic Year",
+       y = "Income per GDP") + 
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.5, color = "Grey"),
+        panel.grid.major.x = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 15, face = "italic"))
 
 p2 <- data_clean %>%
-  ggplot(aes(x = Academic_Year, y = Income_per_GDP)) + 
-  geom_line() + 
-  facet_grid(.~Party)
+  ggplot(aes(x = Academic_Year, y = Income_per_GDP)) +
+  geom_line(size = 1.5, colour = "Blue") +
+  facet_grid(. ~ Party) +
+  labs(title = "Income per GDP from 1987 - 2013",
+       x = "Academic Year",
+       y = "Income per GDP") + 
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 15, face = "italic"),
+        strip.text = element_text(size = 15))
 
 p3 <- data_clean %>%
   ggplot(aes(x = Prop_Intl_Student, y = Income_per_GDP)) +
@@ -98,8 +115,25 @@ p3 <- data_clean %>%
 
 p4 <- data_clean %>%
   ggplot(aes(x = Government_funding_per_GDP, y = Income_per_GDP)) +
-  geom_point()
+  geom_line()
 
+correction <- c(Democrat = "Senate.Democrat", Republican = "Senate.Republican")
+
+p9 <- data_clean %>%
+  ggplot(aes(x = Party, y = Prop_Intl_Student)) +
+  geom_boxplot(color = "Brown") + 
+  facet_grid(. ~ Senate, labeller = labeller(Senate = correction)) +
+  labs(title = "Proportion of International Student",
+       x = "Presidential Party",
+       y = "Proportion of International Student") +
+  scale_x_discrete(labels = c("Presidential.Democrat", "Presidential.Republican")) +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 15, face = "italic"),
+        strip.text = element_text(size = 15, face = "italic"),
+        strip.background = element_rect(fill = "Yellow"),
+        axis.text.x = element_text(size = 10))
+
+  
 ## Regression
 ## Linear Regression
 
@@ -115,8 +149,14 @@ p5 <- fmodel(linear_model)
 
 linear_model %>%
   evaluate_model(at=list(Party="Republican", House = "Republican", Senate = "Republican")) 
-
 ## Predicted Output = 3.125402
+
+linear_model %>%
+  evaluate_model(at=list(Party = "Democrat", House = "Democrat", Senate = "Democrat"))
+## Predicted output = 2.569512
+
+
+
 
 ## Income_per_GDP ~ Prop_Intl_Student
 linear_model_1 <- lm(Income_per_GDP ~ Prop_Intl_Student, data_clean)
@@ -132,6 +172,9 @@ linear_model_1 %>%
 
 ## Predicted Output = 1.100947
 
+
+
+
 ## Income_per_GDP ~ Prop_Intl_student + Government_funding_per_GDP
 linear_model_2 <- lm(Income_per_GDP ~ Prop_Intl_Student + Government_funding_per_GDP, data_clean)
 print(linear_model_2)
@@ -141,16 +184,27 @@ summary(linear_model_2)
 
 p7 <- fmodel(linear_model_2)
 linear_model_2 %>%
-  evaluate_model(at=list(Prop_Intl_Student = 3.125402, Government_funding_per_GDP = (324.1/19284.99)*100))
+  evaluate_model(at=list(Prop_Intl_Student = 3.125402, Government_funding_per_GDP = (23.91038/19284.99)*100))
                  
-## Budget for FY2017 - 324.1billion on tertiary education, GDP for FY2017 = 19287.99billion
-## Predicted_output = -0.977233
+## Budget for FY2017 - 23.91038billion on tertiary education, GDP for FY2017 = 19287.99billion
+## Predicted_output = 1.149536
+
+linear_model_2 %>%
+  evaluate_model(at=list(Prop_Intl_Student = 2.569512, Government_funding_per_GDP = (23.91038/19284.99)*100))
+## Predicted_output = 1.032905
+
+
 
 ## Recursive Partition
+rpart(Prop_Intl_Student ~ Party + House + Senate, data_clean) %>%
+  rpart.plot::prp(type=3)
+
 rpart(Income_per_GDP ~ Prop_Intl_Student + Government_funding_per_GDP, data_clean) %>%
   rpart.plot::prp(type=3)
 
 rpart(Operating_Income ~  Party + Visa_for_Intl_Students, data_clean) %>%
   rpart.plot::prp(type=3)
+
+
 
 
